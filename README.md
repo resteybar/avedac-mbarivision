@@ -7,14 +7,6 @@
  
 ## Installation
 
-There are two ways to build the aved-mbarivision module.
-
-The fastest way is to download a prebuilt version from the Docker hub with
-
-    docker pull danellecline/avedac-mbarivision
-
-If you want to build yourself, checkout the code and build the image.
-
 Get the password from http://ilab.usc.edu/toolkit/downloads.shtml for the toolkit, 
 then run the Docker build with that password set in SALIENCY_SVN_PASSWORD
 
@@ -31,7 +23,7 @@ If you don't have an example video clip, there is one in the Docker image at /ex
 This is a small video clip taken with a Remotely Operated Vehicle (ROV) transecting across the seafloor.
 
 * Run docker in the background in a "detached" mode
-> CID=$(docker run -d -v /Users/dcline/Downloads/:/tmp/Downloads/ -P avedac/classifier)
+> CID=$(docker run -d -v /Users/dcline/Downloads/:/tmp/Downloads/ -P avedac-mbarivision)
 
 * Get the port number
 > echo $(docker port $CID 22 | cut -d ':' -f 2)
@@ -50,6 +42,4 @@ To get other options with runclip, simply type runclip
 > runclip
 
 
-Alternatively, you can run mbarivision by hand. The options can all be found [here](https://bitbucket.com/mbari/avedac/src/master/aved-mbarivision/OPTIONS.md) 
-
-TODO: put example here
+Alternatively, you can run mbarivision by hand. The options can all be found [here](doc/OPTIONS.md) 
