@@ -1,8 +1,5 @@
 ## Requirements
 
-
-## Prerequisites
-
 - Install [Docker](https://docs.docker.com/installation/)
  
 ## Installation
