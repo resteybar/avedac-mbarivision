@@ -10,8 +10,7 @@
 Get the password from http://ilab.usc.edu/toolkit/downloads.shtml for the toolkit, 
 then run the Docker build with that password set in SALIENCY_SVN_PASSWORD
 
-    git clone git@bitbucket.org:mbari/avedac.git
-    cd avedac/aved-mbarivision
+    git clone git@github.org:mbari-org/avedac-mbarivision.git
     docker build -t avedac-mbarivision --build-arg SALIENCY_SVN_PASSWORD=********** . ```
 
 ## How to use the Docker image 
