@@ -1,0 +1,137 @@
+#!/bin/bash
+#
+# Name: mp2script
+# This script is to be used with Condor
+# to launch an MPICH2 executable with the mpirun command
+#
+# Copyright (c) MBARI 2010
+# Author: D. Cline
+#
+# exit on error - this will exit this bash script when any command exits with
+# a non-zero exit code
+set -e
+#############################################################
+rundbg()
+{
+gdbinit="`pwd`"\/.gdbinit
+cat > $gdbinit <<_ACEOF
+file $2
+set args $3
+handle SIGUSR1
+handle SIGUSR2
+handle SIGSEGV
+handle SIGABRT
+path /home/dcline/aved/saliency/src
+path /u/dcline/project_aved/code/workspace/pmbarivision/src
+path /u/dcline/project_aved/code/workspace/mbarivision/src
+_ACEOF
+$1
+}
+#############################################################
+# Initialize defaults
+E_ERR=1
+skip_condor_proc=0
+debug=0
+job_alias=$USER
+executable=/bin/echo
+final_args=
+if [ ! $MPDIR ]; then
+# Set this to the directory of your MPICH installation
+MPDIR=/opt/mpich2-1.1p1
+fi
+PATH=$MPDIR/bin:.:$PATH
+export PATH
+machine_file=""
+
+# Check arguments
+while getopts a:h:e:g:n:cd option 
+do
+  case $option in   
+   a)  job_alias="$OPTARG";;
+   d)  debug=1;;
+   e)  executable="$OPTARG";;
+   h)  machine_file="$OPTARG";;
+   g)  final_args="$OPTARG";;
+   n)  override_nprocs="$OPTARG";;
+   c)  skip_condor_proc=1;;
+   *)  echo "Unimplemented option chosen."
+       echo "  ";;
+  esac
+done
+
+if [ ! "$machine_file" ]; then
+    echo "Error - no machine file specified" 
+fi
+
+_condor_procno=0
+
+# Used when running with Condor, but not for debugging
+if [ $skip_condor_proc -eq 0 ] ;then
+    _condor_procno=$_condor_procno
+    _condor_nprocs=$_condor_nprocs
+    # If not the head node, just sleep forever
+    if [ $_condor_procno -ne 0 ]
+	then
+	wait
+	exit 0
+    fi
+fi
+
+
+# Setup the mpich2 environment
+export LD_LIBRARY_PATH=/lib:/usr/lib:/home/aved/lib:$MPDIR/lib
+export P4_RSHCOMMAND=/usr/bin/ssh
+
+if [ ! -f $machine_file ]; then
+    echo "Machine file '$machine_file' invalid or missing "
+    exit $E_ERR
+fi
+
+# The machines to use in this job
+echo "----MPI machines used in job alias $job_alias ------------"
+sort -n < $machine_file | awk '{print $1}' 
+
+# Override the number of processes if requested
+if [ $override_nprocs ]; then
+    _condor_nprocs=$override_nprocs
+fi   
+
+# MPICH2 requires an mpd.conf file with a password in it 
+# in the users home directory on the host starting the job.
+export MPD_CONF_FILE=$HOME/.mpd.conf
+echo "MPD_SECRETWORD=nanomia" > $MPD_CONF_FILE
+chmod 600 $MPD_CONF_FILE
+
+# Start the MPD ring if there isn't one already started
+# This assumes the system-wide mpd.host file is readable by all users
+numhosts=`wc -l $MPDIR/etc/mpd.hosts | awk '{print $1}'`
+numhostsup=`mpdtrace | wc -l`
+
+if [ $numhosts -eq $numhostsup ]; then 
+    echo "mpd already running for user $USER"
+else
+    cmd="mpdboot --rsh=$P4_RSHCOMMAND --file=$MPDIR/etc/mpd.hosts --totalnum=$numhosts --mpd=$MPDIR/bin/mpd.py"
+    echo "Executing $cmd"
+    $cmd
+fi
+
+# To avoid leaving the mpi job hanging trap ctrl-c or terminate signals and kill the job gracefully
+trap 'echo "mp2script job alias $job_alias was interrupted"; mpdkilljob -a $job_alias; echo;exit $E_ERR' INT TERM EXIT
+
+# If not debugging, run the MPI job
+if [ $debug -eq 0  ] ;then
+    echo "Executing mpirun -machinefile $machine_file -a $job_alias -np $_condor_nprocs $executable $final_args"
+    mpirun -a $job_alias -machinefile $machine_file -np $_condor_nprocs $executable $final_args
+else	
+    # Run in debugger
+    echo "Executing mpigdb -n $_condor_nprocs -l -m -s $executable" "$executable" "$final_args"
+    rundbg "mpigdb -machinefile $machine_file -n $_condor_nprocs -machinefile $machinefile -l -m -s $executable" "$executable" "$final_args" ;
+fi
+trap - INT TERM EXIT
+
+rc=$?
+
+echo "----------------->mp2script done - return code $rc !!<--------------------------"	 
+exit $rc
+
+

@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# Name: clip2ppm_ffmpeg
+# This script converts a video clip or tar.gz file into individual ppm frames in preparation
+# for AVEDac processing. Uses ffmpeg.
+#
+# Copyright (c) MBARI 2016
+# Author: D. Cline
+#
+###################################################################################
+# Print usage
+print_usage()
+{
+  echo "  "
+  echo "  "
+  echo -e "USAGE:  clip2ppm_ffmpeg [OPTIONS] -i filename.AVI|MOV|MPG|tar.gz -o ppm_output_directory"
+  echo "  "
+  echo "  "
+  echo "  "
+  echo "OPTION"
+  echo "  "
+  echo -e "\033[1m -s \033[0m"
+  echo "     output ppm directory is defined relative to local machine users scratch directory"
+  echo "      (Example:  clip2ppm_ffmpeg -s -i filename.AVI -o mytest/output )"
+  echo "  "
+  echo -e "\033[1m -b \033[0m"
+  echo "     beginning start timecode in ISO format, e.g.  20040513T001230          "
+  echo "      (Example:  clip2ppm_ffmpeg -b 20040513T001230 -i filename.AVI -o mytest/output )"
+  echo "  "
+  echo -e "\033[1m -d \033[0m"
+  echo "     duration. Duration in seconds to process "
+  echo "     For example, to transcode only the first 30 seconds "
+  echo "      (Example:  clip2ppm_ffmpeg -d 30 -i filename.AVI -o mytest/output )"
+  echo "  "
+}
+frame_number=0
+###################################################################################
+# Utility function to print timecode from total fractional seconds
+###################################################################################
+secs_to_timecode() {
+    r=$(round $1 2)
+    t=$(round $1 0)
+    ((h=$t/3600))
+    ((m=($t%3600)/60))
+    ((s=$t%60))
+    f="$(echo "$s + ($r - $t)" | bc)"
+    printf "%02d:%02d:%02.3f\n" $h $m $f
+}
+###################################################################################
+# Utility function to remove very long listings of files
+###################################################################################
+rmall()
+{
+   tmp=./tmp.$RANDOM
+   echo "find ./ -type f -name '$1' -exec rm {} \;" > $tmp
+   chmod u+x $tmp
+   $tmp
+   rm -f $tmp
+}
+###################################################################################
+# Initialize variables
+E_ERR=2
+SUCCESS=0
+FAILURE=-1
+input=""
+output=""
+use_system_scratch=0
+has_timecode=0
+transcode_opts=""
+codec=""
+extra_args=
+duration=-1
+start_frame=0
+end_frame=0
+
+# Check arguments
+args=`getopt -o t:i:o:b:d: -- "$@" `
+if test $? != 0; then
+    print_usage
+    exit $E_ERR
+fi
+
+eval set -- "$args"
+for i
+do
+  case $i in
+   -i)  shift;input="$1";shift;;
+   -s)  use_system_scratch=1;;
+   -b)  shift;start_timecode="$1";shift;;
+   -d)  shift;duration=$1;shift;;
+   -t)  shift;transcode_opts="$1";shift;;
+   -o)  shift;output="$1";shift;;
+  esac
+done
+
+# If the input and output files are empty print usage and exit
+if [ ! -n "$input" ] || [ !  -n "$output" ]; then
+    print_usage
+    exit $E_ERR
+fi
+
+# Add the path to the aved binaries if AVED_BIN is set
+if [ $AVED_BIN ]; then
+    PATH=$PATH:$AVED_BIN
+    export PATH
+fi
+
+# Format the output directory
+if [ $use_system_scratch = 1 ]; then
+    if [ $SCRATCH_DIR -a $USER ]; then
+	outputdir=$SCRATCH_DIR/$USER/$output
+    else
+	echo "Error \$SCRATCH_DIR and \$USER environment variable must be defined when using the -s option"
+	exit $E_ERR
+    fi
+else
+    outputdir=$output
+fi
+
+# Create output directory if it doesn't exist
+# If it exists and it is in scratch, then clean it first
+if [ -d $outputdir -a $use_system_scratch = 1 ]; then
+     # Change into output directory
+    pushd $outputdir
+    echo $PWD
+    echo "Found $outputdir, removing previous results in directory"
+    rmall "*"
+    popd
+else
+    echo "Executing mkdir -p $outputdir"
+    mkdir -p $outputdir
+    chmod a+rwx -f $outputdir
+fi
+
+# Format the absolute name of the input file
+basefile=$(basename $input)
+filestem=${basefile%.*}
+D=$(dirname $input)
+abspath=`cd $D && pwd `
+
+# Format the full path to the file
+input=$abspath/$basefile
+
+echo $input
+
+# Now do the work in the output directory
+pushd $outputdir
+
+# Initialize the file seed
+outputfileseed=f
+
+# Remove any previous ppm files generated
+rmall "$outputfileseed*.ppm"
+
+# Format the transcode option for seeking to the start
+if [ $start_timecode  ]; then
+  transcode_opts=" -accurate_seek -ss $start_timecode $transcode_opts "
+fi
+
+if [ $duration != -1 ]; then
+  transcode_opts=" $transcode_opts -t $duration "
+fi
+
+# Run transcode or scripts needed to convert to ppms
+case $input in
+
+    *.tgz | *.tar.gz )
+	echo "Warning: transcode commands will be ignored because $input is not a video clip to be transcoded."
+	gunzip < $input | tar xvf -
+	;;
+
+    *.avi | *.mov | *.mpeg | *.wmv | *.mp4 )
+    cmd="ffmpeg $transcode_opts -i $input -framerate 29.97 $outputfileseed%06d.ppm"
+    trap 'echo "clip2ppm TRAP"; exit 0' INT TERM EXIT
+    echo "Executing $cmd"
+    $cmd
+    if [ $start_timecode ]; then
+        hours=`echo $start_timecode | cut -c 1-2`
+        minutes=`echo $start_timecode | cut -c 4-5`
+        seconds=`echo $start_timecode | cut -c 7-8`
+        frame=0
+        ttl_seconds=0
+        # this inserts timecode into the individual ppm frames base on an ISO formatted timecode, e.g. 20040513T001230
+        # specified in the
+        for filename in f*.ppm ; do
+            ttl_seconds=$(echo "scale=3;(3600*$hours + 60*$minutes + $seconds + $frame/29.97)" | bc)
+            tc=$(secs_to_timecode $ttl_seconds)
+            ppm_to_ppm_timecode $filename $tc
+            frame=$((frame+1))
+         done
+    fi
+    ;;
+
+esac
+
+exit 0
+

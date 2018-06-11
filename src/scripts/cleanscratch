@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Name: cleanscratch
+# This script clean up scratch space for a users
+
+# Copyright (c) MBARI 2010
+# Author: D. Cline
+#
+# scripts are in
+# exit on error - this will exit this bash script when any command exits with
+# a non-zero exit code
+set -e 
+
+###################################################################################
+# Print usage
+print_usage()
+{
+  echo "  "
+  echo "  "
+  echo -e "\033[1mUSAGE:  cleanscratch [directory] \033[0m"
+  echo "  "
+  echo "  Remove all files in users scratch directory relative to testclip/20040513T001230"
+  echo "      (Example:  cleanscratch testclip/20040513T001230)"
+  echo "  "  
+  echo "  " 
+}
+###################################################################################
+# Initialize variables
+E_ERR=2
+if test $# -ne 1 
+then print_usage
+exit 1
+fi
+
+if [ $SCRATCH_DIR -a $USER ]; then
+    pushd $SCRATCH_DIR/$USER/$1;
+    tmp=./tmp.$RANDOM
+    echo "Removing files with stem *"
+    echo "find ./ -type f -name '*' -exec rm {} \;" > $tmp
+    chmod u+x $tmp
+    $tmp 
+    rm -f $tmp
+    popd;
+    rm -rf $SCRATCH_DIR/$USER/$1
+else
+    echo "Error - \$SCRATCH_DIR or \$USER environment variable not defined"
+    exit $E_ERR
+fi
+
+exit 0
