@@ -16,8 +16,7 @@ RUN \
   apt-get install -y byobu curl git htop man unzip vim wget xterm flex && \
   apt-get install -y zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev libpng-dev && \
   apt-get install -y libboost-all-dev qt5-default tclsh freeglut3-dev libjpeg-dev libx11-dev libxext-dev libxml2-dev libtiff-dev && \
-  apt-get update && \
-  apt-get clean
+  apt-get update
 
 # Set /code as working directory
 ENV APP_HOME /code
@@ -45,13 +44,12 @@ RUN svn checkout --username anonsvn --password ${SALIENCY_SVN_PASSWORD} svn://is
 ENV SALIENCYROOT=/code/saliency
 WORKDIR /code/saliency
 RUN autoconf configure.ac > configure
-
-# Put libraries in places expected by configure script
-RUN cp /usr/lib/libblas/libblas.* /usr/local/lib/
-RUN cp /usr/lib/lapack/liblapack.* /usr/local/lib/
-
+  
 # Build Saliency
-RUN export CFLAGS='-L/usr/lib/x86_64-linux-gnu/'  
+ENV CFLAGS='-L/usr/lib -I/usr/include'
+ENV CXXFLAGS='-L/usr/lib -I/usr/include'
+ENV CPPFLAGS='-L/usr/lib -I/usr/include'
+ENV LDFLAGS='-L/usr/lib'
 RUN ./configure 
 RUN make clean
 RUN make depoptions-all
@@ -70,27 +68,17 @@ RUN ./runConfigure -p linux -b 64
 RUN make
 RUN make install
 
-WORKDIR ${APP_HOME}
-COPY src ${APP_HOME}
-RUN autoconf configure.ac > configure
-RUN chmod 0755 configure
-ENV CPPFLAGS='-I/usr/include/libxml2'
-ENV LDFLAGS='-L/usr/lib -lxml2'
-RUN ./configure --with-saliency=$SALIENCYROOT --with-xercesc=$XERCESCROOT --prefix=/usr/local
-RUN make
-
 # For X11 Forwarding to display output
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get install -y xpra rox-filer openssh-server pwgen xserver-xephyr xdm fluxbox xvfb sudo
 RUN sed -i 's/DisplayManager.requestPort/!DisplayManager.requestPort/g' /etc/X11/xdm/xdm-config
 RUN sed -i '/#any host/c\*' /etc/X11/xdm/Xaccess
-RUN ln -s /usr/bin/Xorg /usr/bin/X
 RUN echo X11Forwarding yes >> /etc/ssh/ssh_config
 RUN sed -i 's/session    required     pam_loginuid.so/#session    required     pam_loginuid.so/g' /etc/pam.d/sshd
 RUN dpkg-divert --local --rename --add /sbin/initctl && ln -sf /bin/true /sbin/initctl
 RUN apt-get -y install fuse  || :
 RUN rm -rf /var/lib/dpkg/info/fuse.postinst
-RUN apt-get -y install fuse
+RUN apt-get -y install fuse && rm -rf /var/lib/apt/lists/*
 RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 || :
 EXPOSE 22
 
@@ -103,8 +91,8 @@ WORKDIR /code
 RUN rm *.zip
 RUN rm *.tar.gz
 ADD start.sh .
-#RUN rm -rf /code/opencv-2.4.11/*
-#RUN rm -rf /code/xerces-c-src_${VERSION}
+RUN rm -rf /code/opencv-2.4.11/*
+RUN rm -rf /code/xerces-c-src_${VERSION}
   
 # Start xdm and ssh services.
-#CMD ["/bin/bash", "/code/start.sh"]
+CMD ["/bin/bash", "/code/start.sh"]
