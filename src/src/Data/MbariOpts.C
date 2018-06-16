@@ -85,8 +85,7 @@ const ModelOptionDef OPT_MToolSledVideo =
     "--mbari-tracking-mode=KalmanFilterHough --mbari-cache-size=60 "
     "--mbari-save-original-frame-spec --test-mode=true --mbari-use-foa-mask-region=false "
     "--mbari-color-space=RGB --vc-chans=COKMF  --use-random=true --mbari-dynamic-mask=true "
-    "--shape-estim-mode=ConspicuityMap --use-older-version=false --ior-type=ShapeEst --maxnorm-type=FancyOne "
-    "--mbari-saliency-input-image=Raw --mbari-mask-lasers=true --boring-sm-mv=0.25 "
+    "--maxnorm-type=FancyOne --mbari-saliency-input-image=Raw --mbari-mask-lasers=true --boring-sm-mv=0.25 "
     "--levelspec=1-3,2-4,1 --mbari-se-size=10 --qtime-decay=1.0 --mbari-max-evolve-msec=1000 "
     "--mbari-segment-algorithm=GraphCut  --mbari-segment-algorithm-input-image=DiffMean "
     "--mbari-saliency-dist=2 --shape-estim-smoothmethod=None --boring-sm-mv=1.0 "
@@ -105,8 +104,7 @@ const ModelOptionDef OPT_MEyeInTheSeaVideo =
     "--mbari-max-WTA-points=15 --mbari-max-evolve-msec=1000 "
     "--vc-chans=OIC --use-random=true  --maxnorm-type=Maxnorm "
     "--oricomp-type=Steerable --levelspec=1-3,2-5,3 "
-    "--mbari-cache-size=2 --use-older-version=false "
-    "--shape-estim-mode=ConspicuityMap --ior-type=ShapeEst "
+    "--mbari-cache-size=2 "
     "--mbari-max-event-area=30000 --mbari-min-std-dev=10.0 "
     "--mbari-segment-algorithm=GraphCut "
     "--mbari-event-expiration-frames=3 --rescale-input=320x240 "
@@ -118,12 +116,12 @@ const ModelOptionDef OPT_MBenthicVideo =
     "processing video from a moving camera traversing the sea bottom",
     "mbari-benthic-video", '\0',"",
     "--levelspec=1-3,2-4,3 --num-orient=4 --mbari-save-original-frame-spec "
-    "--mbari-tracking-mode=Hough  --shape-estim-mode=ConspicuityMap --mbari-mask-lasers=true "
+    "--mbari-tracking-mode=Hough --mbari-mask-lasers=true "
     "--mbari-saliency-input-image=Raw --mbari-min-event-frames=3 --sm-type=StdOptim "
     "--vc-chans=OIMF --use-random=true  --mbari-se-size=4 --rescale-input=960x540  --boring-sm-mv=0.25 "
     "--ori-interaction=SubtractMean --oricomp-type=Steerable --shape-estim-smoothmethod=None --mbari-saliency-dist=5 "
-    "--mbari-cache-size=30 --use-older-version=false --mbari-max-evolve-msec=1000 --mbari-keep-boring-WTA-points=true "
-    "--shape-estim-mode=ConspicuityMap --ior-type=ShapeEst --maxnorm-type=FancyOne --mbari-min-event-frames=1 "
+    "--mbari-cache-size=30 --mbari-max-evolve-msec=1000 --mbari-keep-boring-WTA-points=true "
+    "--maxnorm-type=FancyOne --mbari-min-event-frames=1 "
     "--mbari-dynamic-mask=true "};
 
 const ModelOptionDef OPT_MMidwaterVideo =
@@ -133,8 +131,7 @@ const ModelOptionDef OPT_MMidwaterVideo =
     "mbari-midwater-video", '\0',"",
     "--mbari-tracking-mode=KalmanFilterHough --mbari-cache-size=60 "
     "--mbari-save-original-frame-spec --test-mode=true --mbari-dynamic-mask=true "
-    "--mbari-color-space=RGB --vc-chans=O  --use-random=true "
-    "--shape-estim-mode=ConspicuityMap --use-older-version=false --ior-type=ShapeEst --maxnorm-type=FancyOne "
+    "--mbari-color-space=RGB --vc-chans=O  --use-random=true --maxnorm-type=FancyOne "
     "--mbari-saliency-input-image=RedGreenOpponent --rescale-input=960x540 "
     "--levelspec=1-3,2-4,1 --mbari-se-size=10 --qtime-decay=1.0 --mbari-max-evolve-msec=500 "
     "--mbari-segment-algorithm=Best  --mbari-segment-algorithm-input-image=Luminance "
@@ -151,7 +148,7 @@ const ModelOptionDef OPT_MMosaicStills =
     "--boring-sm-mv=1.0 --levelspec=1-3,2-5,2 --shape-estim-smoothmethod=None "
     "--mbari-save-boring-events=yes --maxnorm-type=FancyOne --mbari-pad-events=75 "
     "--vc-chans=OIC --num-orient=8 --use-random=true --mbari-rescale-saliency=960x540 "
-    "--mbari-saliency-input-image=Raw  --shape-estim-mode=ConspicuityMap "
+    "--mbari-saliency-input-image=Raw "
     "--mbari-max-WTA-points=50 --mbari-max-evolve-msec=5000" };
 
 const ModelOptionDef OPT_MTimeLapseStills =
@@ -161,13 +158,12 @@ const ModelOptionDef OPT_MTimeLapseStills =
     "mbari-timelapse-stills", '\0',"",
     "--mbari-saliency-dist=1 --mbari-tracking-mode=NearestNeighbor "
     "--mbari-keep-boring-WTA-points=yes --mbari-rescale-saliency=960x540 "
-    "--mbari-save-boring-events=yes  --shape-estim-mode=ConspicuityMap "
+    "--mbari-save-boring-events=yes  "
     "--mbari-segment-algorithm-input-image=DiffMean --mbari-color-space=RGB"
     "--mbari-saliency-input-image=Raw --mbari-cache-size=10 "
     "--qtime-decay=1.0 --boring-sm-mv=1.0 --levelspec=1-3,2-5,2 --shape-estim-smoothmethod=None "
     "--vc-chans=OIC  --use-random=true --maxnorm-type=FancyOne "
-    "--mbari-max-WTA-points=30 --mbari-max-evolve-msec=15000 "
-    "--use-older-version=false "  };
+    "--mbari-max-WTA-points=30 --mbari-max-evolve-msec=15000 " };
 
 // #################### Logger options:
 

@@ -148,6 +148,9 @@ int main(const int argc, const char** argv) {
     // Initialize brain defaults
     manager.setOptionValString(&OPT_UseRandom, "true");
     manager.setOptionValString(&OPT_SVdisplayBoring, "false");
+    manager.setOptionValString(&OPT_ShapeEstimatorMode, "ConspicuityMap");
+    manager.setOptionValString(&OPT_IORtype, "ShapeEst");
+    manager.setOptionValString(&OPT_UseOlderVersion, "false");
   /*  manager.setOptionValString(&OPT_SVdisplayFOA, "true");
     manager.setOptionValString(&OPT_SVdisplayPatch, "false");
     manager.setOptionValString(&OPT_SVdisplayFOALinks, "false");
@@ -402,7 +405,7 @@ int main(const int argc, const char** argv) {
             Image< PixRGB<float> > in = input;
             Image<byte>::iterator mitr = mask.beginw();
             Image< PixRGB<float> >::const_iterator ritr = in.beginw(), stop = in.end();
-            float thresholda = 50.F, thresholdl = 50.F;
+            float thresholda = 30.F, thresholdl = 50.F;
             // mask out any significant red in the L*a*b color space where strong red has positive a values
             while(ritr != stop) {
                 const PixLab<float> pix = PixLab<float>(*ritr++);
@@ -413,7 +416,7 @@ int main(const int argc, const char** argv) {
         }
 
         // mask is inverted so morphological operations are in reverse; here we are enlarging the mask to cover
-        Image<byte> se = twofiftyfives(dp.itsCleanupStructureElementSize);
+        Image<byte> se = twofiftyfives(3*dp.itsCleanupStructureElementSize);
         mask = erodeImg(mask, se);
         rv->output(ofs, mask, frameNum, "Mask");
 
@@ -433,7 +436,7 @@ int main(const int argc, const char** argv) {
            mitr++; smitr++;
         }
 
-        rv->output(ofs, sm, frameNum, "SaliencyMap");
+        rv->display(sm, frameNum, "SaliencyMap");
         // post revised saliency map as new output from the Visual Cortex so other simulation modules can iterate on this
         LINFO("Posting revised saliency map");
         rutz::shared_ptr<SimEventVisualCortexOutput> newsm(new SimEventVisualCortexOutput(brain.get(), sm));
