@@ -21,7 +21,7 @@ There is a script that simplifies its execution called runclip that can be run i
 If you don't have an example video clip, there is one in the Docker image at /tmp/MBARItest.mp4.
 This is a small video clip taken with a Remotely Operated Vehicle (ROV) transecting across the seafloor.
  
-Launch XQuartz and open a terminal window with &#8984N
+Launch XQuartz and open a terminal window with <kbd>&#8984;N</kbd>
  
 Ensure the host is allowing X forwarding 
 > xhost + 127.0.0.1
