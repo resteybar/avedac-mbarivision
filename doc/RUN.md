@@ -54,4 +54,4 @@ runclip
 ```
 
 Alternatively, you can run mbarivision by hand. 
-Options are [here](doc/OPTIONS.md) 
+Options are [here](OPTIONS.md) 
