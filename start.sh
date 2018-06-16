@@ -23,7 +23,7 @@ echo "export LD_LIBRARY_PATH=/usr/lib" >> /home/docker/.bashrc
 echo "export CPPFLAGS='-I/usr/include/libxml2'"  >> /home/docker/.bashrc
 echo "export LDFLAGS='-lxml2'"  >> /home/docker/.bashrc
 echo "export AVED_BIN=/code/avedac-mbarivision/target/build/bin" >> /home/docker/.bashrc
-echo "export PATH=$PATH:$AVED_BIN" >> /home/docker/.bashrc 
+echo "export PATH=/code/avedac-mbarivision/target/build/bin:$PATH" >> /home/docker/.bashrc 
 
 # restarts the xdm service
 /etc/init.d/xdm restart
