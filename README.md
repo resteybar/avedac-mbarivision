@@ -1,6 +1,7 @@
 ## Requirements
 
 - Install [Docker](https://docs.docker.com/installation/)
+- (optional) [XQuartz](https://www.xquartz.org/) for display X windows
  
 ## Installation
 
@@ -17,8 +18,10 @@ then run the Docker build with that password set in SALIENCY_SVN_PASSWORD
 The software that runs the automated detection is simply called mbarivision. 
 There is a script that simplifies its execution called runclip that can be run in the Docker container. 
 
-If you don't have an example video clip, there is one in the Docker image at /examples/MBARItest.mp4.
+If you don't have an example video clip, there is one in the Docker image at /tmp/MBARItest.mp4.
 This is a small video clip taken with a Remotely Operated Vehicle (ROV) transecting across the seafloor.
+ 
+Launch XQuartz and open a terminal window with &#8984N
  
 Ensure the host is allowing X forwarding 
 > xhost + 127.0.0.1
