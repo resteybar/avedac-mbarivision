@@ -18,6 +18,11 @@ COMPILE1    := @echo
 COMPILE2    := @	
 COMPILE3    := 
 CDEPS	    := $(BINDIR)cdeps
+VLIBS       := /usr/lib
+
+# grab virtual paths from saliency build to make knows where to look for libraries
+VLIBS +=`grep -m 1 VPATH_LIBDIRS $(SALIENCYROOT)/Makefile | cut -f2 -d =`
+vpath % $(VLIBS)
 
 all: $(CDEPS) $(BINDIR)mbarivision
 classifier: $(CDEPS) $(BINDIR)trainbayes $(BINDIR)trainbayesLDA $(BINDIR)test-FisherLDA
