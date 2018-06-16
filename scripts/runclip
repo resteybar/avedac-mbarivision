@@ -339,8 +339,8 @@ mkdir -p $output_dir
 
 # Format all the mbarivision model options per the command line input
 case $profile in
-    benthic )  profile_options="--mbari-cache-size=15 --mbari-tracking-mode=NearestNeighbor --mbari-min-event-area=100 --mbari-max-event-area=10000";;
-    midwater )  profile_options="--mbari-cache-size=10 --mbari-tracking-mode=KalmanFilter --mbari-min-event-area=50 --mbari-max-event-area=1000";;
+    benthic )  profile_options="--mbari-benthic-video";;
+    midwater )  profile_options="--mbari-midwater-video";;
     *  )  profile_options=""
 esac
 
