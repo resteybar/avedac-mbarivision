@@ -5,7 +5,7 @@ MAINTAINER Danelle Cline <dcline@mbari.org>
 RUN \
   apt-get update -y && \
   apt-get upgrade -y && \
-  apt-get install -y subversion maven cmake && \
+  apt-get install -y subversion git cmake && \
   apt-get install -y gcc-4.7 g++-4.7 gcc-4.7-base && \
   apt-get install -y ffmpeg && \
   apt-get install -y build-essential python-pip && \
@@ -13,7 +13,7 @@ RUN \
   apt-get install -y openssh-server && \
   update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 100 && \
   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.7 100 && \
-  apt-get install -y byobu curl git htop man unzip vim wget xterm flex && \
+  apt-get install -y byobu curl htop man unzip vim wget xterm fuse flex && \
   apt-get install -y zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev libpng-dev && \
   apt-get install -y libboost-all-dev qt5-default tclsh freeglut3-dev libjpeg-dev libx11-dev libxext-dev libxml2-dev libtiff-dev && \
   apt-get update
@@ -23,11 +23,11 @@ ENV APP_HOME /code
 WORKDIR ${APP_HOME}
 
 # Check out and build OpenCV
-ENV VERSION 2.4.11
-RUN wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/${VERSION}/opencv-${VERSION}.zip/download -O opencv-${VERSION}.zip
-RUN unzip opencv-${VERSION}.zip
-RUN mkdir /code/opencv-${VERSION}/build
-WORKDIR /code/opencv-${VERSION}/build
+ENV CV_VERSION 2.4.11
+RUN wget http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/${CV_VERSION}/opencv-${CV_VERSION}.zip/download -O opencv-${CV_VERSION}.zip
+RUN unzip opencv-${CV_VERSION}.zip
+RUN mkdir /code/opencv-${CV_VERSION}/build
+WORKDIR /code/opencv-${CV_VERSION}/build
 RUN cmake -D CMAKE_INSTALL_PREFIX=/usr -D CMAKE_BUILD_TYPE=RELEASE -D WITH_TBB=ON -D WITH_V4L=OFF -D INSTALL_C_EXAMPLES=OFF -D INSTALL_PYTHON_EXAMPLES=OFF -D BUILD_EXAMPLES=OFF -D WITH_OPENGL=ON ..
 RUN make
 RUN make install
@@ -58,12 +58,12 @@ RUN make bin/test-JunctionHOG
 RUN make bin/test-KalmanFilter
 
 # Check out and build xercesc
-ENV VERSION 2_8_0
+ENV X_VERSION 2_8_0
 WORKDIR /code
-RUN wget http://archive.apache.org/dist/xerces/c/2/sources/xerces-c-src_${VERSION}.tar.gz
-RUN tar -zxf xerces-c-src_${VERSION}.tar.gz
-ENV XERCESCROOT=/code/xerces-c-src_${VERSION}
-WORKDIR /code/xerces-c-src_${VERSION}/src/xercesc
+RUN wget http://archive.apache.org/dist/xerces/c/2/sources/xerces-c-src_${X_VERSION}.tar.gz
+RUN tar -zxf xerces-c-src_${X_VERSION}.tar.gz
+ENV XERCESCROOT=/code/xerces-c-src_${X_VERSION}
+WORKDIR /code/xerces-c-src_${X_VERSION}/src/xercesc
 RUN ./runConfigure -p linux -b 64
 RUN make
 RUN make install
@@ -78,7 +78,8 @@ RUN sed -i 's/session    required     pam_loginuid.so/#session    required     p
 RUN dpkg-divert --local --rename --add /sbin/initctl && ln -sf /bin/true /sbin/initctl
 RUN apt-get -y install fuse  || :
 RUN rm -rf /var/lib/dpkg/info/fuse.postinst
-RUN apt-get -y install fuse && rm -rf /var/lib/apt/lists/*
+RUN rm /code/saliency/bin/*
+RUN rm -rf /var/lib/apt/lists/*
 RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 || :
 EXPOSE 22
 
@@ -86,13 +87,30 @@ EXPOSE 22
 ENV PERL_MM_USE_DEFAULT=1
 RUN perl -MCPAN -e'install "XML::Simple";install "XML::Writer";install "Switch"'
 
+# Add helper scripts
+WORKDIR /usr/local/bin
+ADD scripts .
+
+# Add mbarivision code and build
+WORKDIR /code/avedac-mbarivision/schema
+ADD schema . 
+WORKDIR /code/avedac-mbarivision
+ADD src .
+RUN autoconf configure.ac > configure
+RUN chmod 0755 configure 
+ENV CPPFLAGS '-I/usr/include/libxml2'
+ENV LDFLAGS '-lxml2'
+RUN ./configure --with-saliency=/code/saliency --with-xercesc=/usr/local/include/xercesc --prefix=/usr/local
+RUN make
+RUN make install
+  
 # Clean up and add startup script
 WORKDIR /code
+ADD start.sh .
 RUN rm *.zip
 RUN rm *.tar.gz
-ADD start.sh .
-RUN rm -rf /code/opencv-2.4.11/*
-RUN rm -rf /code/xerces-c-src_${VERSION}
-  
+RUN rm -rf /code/opencv-${CV_VERSION}
+RUN rm -rf /code/xerces-c-src_${X_VERSION}
+   
 # Start xdm and ssh services.
 CMD ["/bin/bash", "/code/start.sh"]

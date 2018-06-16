@@ -20,7 +20,7 @@ There is a script that simplifies its execution called runclip that can be run i
 If you don't have an example video clip, there is one in the Docker image at /examples/MBARItest.mp4.
 This is a small video clip taken with a Remotely Operated Vehicle (ROV) transecting across the seafloor.
 
-* Run docker in the background in a "detached" mode
+* Run docker in the background in a "detached" mode (-d). Expose port 22 on the host machine (-P)  
 > CID=$(docker run -d -v /Users/dcline/Downloads/:/tmp/Downloads/ -P avedac-mbarivision)
 
 * Get the port number
