@@ -90,6 +90,7 @@ RUN perl -MCPAN -e'install "XML::Simple";install "XML::Writer";install "Switch"'
 # Add helper scripts
 WORKDIR /usr/local/bin
 ADD scripts .
+RUN mv MBARItest.mp4 /tmp
 
 # Add mbarivision code and build
 WORKDIR /code/avedac-mbarivision/schema
