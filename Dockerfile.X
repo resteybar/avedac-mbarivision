@@ -7,11 +7,13 @@ RUN \
   apt-get upgrade -y && \
   apt-get install -y subversion git cmake && \
   apt-get install -y gcc-4.7 g++-4.7 gcc-4.7-base && \
+  apt-get install -y ffmpeg && \
   apt-get install -y build-essential python-pip && \
   apt-get install -y software-properties-common && \
+  apt-get install -y openssh-server && \
   update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 100 && \
   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.7 100 && \
-  apt-get install -y gdbserver gdb byobu curl htop man unzip vim wget xterm fuse flex && \
+  apt-get install -y byobu curl htop man unzip vim wget xterm fuse flex && \
   apt-get install -y zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev libpng-dev && \
   apt-get install -y libboost-all-dev qt5-default tclsh freeglut3-dev libjpeg-dev libx11-dev libxext-dev libxml2-dev libtiff-dev && \
   apt-get update
@@ -54,7 +56,6 @@ RUN make depoptions-all
 RUN make bin/ezvision 
 RUN make bin/test-JunctionHOG 
 RUN make bin/test-KalmanFilter
-RUN rm /code/saliency/bin/*
 
 # Check out and build xercesc
 ENV X_VERSION 2_8_0
@@ -65,7 +66,31 @@ ENV XERCESCROOT=/code/xerces-c-src_${X_VERSION}
 WORKDIR /code/xerces-c-src_${X_VERSION}/src/xercesc
 RUN ./runConfigure -p linux -b 64
 RUN make
-RUN make install  
+RUN make install
+
+# For X11 Forwarding to display output
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get install -y xpra rox-filer openssh-server pwgen xserver-xephyr xdm fluxbox xvfb sudo
+RUN sed -i 's/DisplayManager.requestPort/!DisplayManager.requestPort/g' /etc/X11/xdm/xdm-config
+RUN sed -i '/#any host/c\*' /etc/X11/xdm/Xaccess
+RUN echo X11Forwarding yes >> /etc/ssh/ssh_config
+RUN sed -i 's/session    required     pam_loginuid.so/#session    required     pam_loginuid.so/g' /etc/pam.d/sshd
+RUN dpkg-divert --local --rename --add /sbin/initctl && ln -sf /bin/true /sbin/initctl
+RUN apt-get -y install fuse  || :
+RUN rm -rf /var/lib/dpkg/info/fuse.postinst
+RUN rm /code/saliency/bin/*
+RUN rm -rf /var/lib/apt/lists/*
+RUN localedef -v -c -i en_US -f UTF-8 en_US.UTF-8 || :
+EXPOSE 22
+
+# Miscellaneous dependencies for running scripts
+ENV PERL_MM_USE_DEFAULT=1
+RUN perl -MCPAN -e'install "XML::Simple";install "XML::Writer";install "Switch"'
+
+# Add helper scripts
+WORKDIR /usr/local/bin
+ADD scripts .
+RUN mv MBARItest.mp4 /tmp
 
 # Add mbarivision code and build
 WORKDIR /code/avedac-mbarivision/schema
@@ -82,10 +107,11 @@ RUN make install
   
 # Clean up and add startup script
 WORKDIR /code
+ADD start.sh .
 RUN rm *.zip
 RUN rm *.tar.gz
 RUN rm -rf /code/opencv-${CV_VERSION}
-RUN rm -rf /code/xerces-c-src_${X_VERSION} 
-RUN rm -rf /var/lib/apt/lists/* 
-     
-CMD ["/usr/local/bin/mbarivision"]
+RUN rm -rf /code/xerces-c-src_${X_VERSION}
+   
+# Start xdm and ssh services.
+CMD ["/bin/bash", "/code/start.sh"]
