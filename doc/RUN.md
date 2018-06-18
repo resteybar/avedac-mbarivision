@@ -63,6 +63,10 @@ ssh -Y docker@localhost -p 32768
 ```bash
 export DISPLAY=docker.for.mac.localhost:0
 ```
+or 
+```bash
+export DISPLAY=host.docker.internal:0
+```
 
 * Process clip /tmp/MBARItest.mp4 with benthic options (-f benthic) and display to XWindows (-x)
 ```bash
