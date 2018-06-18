@@ -9,7 +9,7 @@ BINDIR	    := target/build/bin/
 LIBDIR      := target/build/lib/
 SCHEMADIR   := schema/
 CXX         := g++
-CXXFLAGS    := -L/usr/lib -I/usr/include 
+CXXFLAGS    := -L/usr/lib -I/usr/include -g
 DEFS        := -DINST_BYTE=1 -DINST_FLOAT=1 -DHAVE_OPENCV2=1 -DHAVE_OPENCV=1 -DCV_MAJOR_VERSION=2.4.9
 CPPFLAGS    := -I/usr/include/libxml2 -I$(OPENCVROOT)/include/opencv -I$(OPENCVROOT)/include/opencv2 -I$(SALIENCYROOT)/src -I$(XERCESCROOT)/src -I$(SRCDIR) -include $(SALIENCYROOT)/config.h
 LDFLAGS     := -lxml2 -L/usr/local/lib -L$(OPENCVROOT) -L$(SALIENCYROOT)/build/obj -L$(XERCESCROOT)/lib -lxerces-c -lopencv_core -lopencv_imgproc -lopencv_video -lopencv_objdetect -lopencv_legacy -lGLU
@@ -26,6 +26,7 @@ vpath % $(VLIBS)
 
 all: $(CDEPS) $(BINDIR)mbarivision
 classifier: $(CDEPS) $(BINDIR)trainbayes $(BINDIR)trainbayesLDA $(BINDIR)test-FisherLDA
+helloworld: $(CDEPS) $(BINDIR)helloworld
 
 # for the compilation of the Version file every time to date/time stamp the build
 $(OBJDIR)Utils/Version.o: force $(SRCDIR)Utils/Version.C
@@ -34,10 +35,10 @@ force: ;
 ##### Implicit rules
 $(BINDIR)%:
 	 $(COMPILE1) "Linking executable program" $@	 
-	 $(COMPILE2) $(CXX)  \
+	 $(COMPILE2) $(CXX) \
 	  -o $@ -O \
-  	  $(addprefix $(PWD)/,$(filter-out /%, $+)) \
-	  $(filter /%, $+)  \
+  	  $(addprefix $(PWD)/,$(filter-out %, $+)) \
+	  $(filter %, $+)  \
 	  $(LDFLAGS)  $(LIBS)
 	  @mkdir -p $(BINDIR)/$(SCHEMADIR)
 	  $(COMPILE1) "Installing xml schema files in $(SCHEMADIR) to $(BINDIR) "
@@ -81,6 +82,7 @@ $(DEPFILE):$(CDEPS)
            --srcdir "$(SRCDIR)" \
            --includedir "$(SRCDIR)" \
            --exeformat "$(SRCDIR)Mbarivision.C : $(BINDIR)mbarivision" \
+           --exeformat "$(SRCDIR)helloworld.C : $(BINDIR)helloworld" \
            --includedir "$(SALIENCYROOT)/src" \
            --includedir "$(XERCESCROOT)/src" \
            --options-file depoptions-all \
