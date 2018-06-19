@@ -18,3 +18,4 @@ git push --tags
 docker push mbari/avedac-mbarivision-gdb:$version
 docker push mbari/avedac-mbarivision-X:$version
 docker push mbari/avedac-mbarivision:$version
+build.sh
