@@ -1,0 +1,28 @@
+version: '3'
+services:
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile.base
+    image: base
+  mbarivision:
+    build:
+      context: .
+    image: mbari/avedac-mbarivision
+    depends_on:
+      - base
+  gdb:
+    build:
+      context: .
+      dockerfile: Dockerfile.gdb
+    image: mbari/avedac-mbarivision-gdb
+    depends_on:
+      - base
+  X:
+    build:
+      context: .
+      dockerfile: Dockerfile.X
+    image: mbari/avedac-mbarivision-xdisplay
+    depends_on:
+      - base
+      
