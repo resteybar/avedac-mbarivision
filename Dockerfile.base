@@ -30,20 +30,14 @@ RUN cmake -D CMAKE_INSTALL_PREFIX=/usr -D CMAKE_BUILD_TYPE=RELEASE -D WITH_TBB=O
 RUN make
 RUN make install
 
-# Suppress warning about storing unencrypted password that prompts yes/no answer
-RUN mkdir ~/.subversion
-RUN echo "[global]" > ~/.subversion/config
-RUN echo "store-plaintext-passwords=off" >> ~/.subversion/config
-
-# Check out saliency
+# Add all the code
 WORKDIR /code
-ARG SALIENCY_SVN_PASSWORD
-RUN svn checkout --username anonsvn --password ${SALIENCY_SVN_PASSWORD} svn://isvn.usc.edu/software/invt/trunk/saliency
+ADD src .
+
+# Build saliency
 ENV SALIENCYROOT=/code/saliency
 WORKDIR /code/saliency
-RUN autoconf configure.ac > configure
-  
-# Build Saliency
+RUN autoconf configure.ac > configure 
 ENV CFLAGS='-L/usr/lib -I/usr/include'
 ENV CXXFLAGS='-L/usr/lib -I/usr/include'
 ENV CPPFLAGS='-L/usr/lib -I/usr/include'
@@ -69,7 +63,6 @@ RUN make install
 
 # Add mbarivision code and build
 WORKDIR /code/avedac-mbarivision
-ADD src .
 RUN autoconf configure.ac > configure
 RUN chmod 0755 configure 
 ENV CPPFLAGS '-I/usr/include/libxml2'
