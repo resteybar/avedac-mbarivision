@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 MAINTAINER Danelle Cline <dcline@mbari.org>
 
-# Install
+# Install package dependencies
 RUN \
   apt-get update -y && \
   apt-get upgrade -y && \
@@ -61,8 +61,8 @@ RUN ./runConfigure -p linux -b 64
 RUN make
 RUN make install  
 
-# Add mbarivision code and build
-WORKDIR /code/avedac-mbarivision
+# Finally, build mbarivision
+WORKDIR /code
 RUN autoconf configure.ac > configure
 RUN chmod 0755 configure 
 ENV CPPFLAGS '-I/usr/include/libxml2'

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 MBARI
+ * Copyright 2018 MBARI
  *
  * Licensed under the GNU LESSER GENERAL PUBLIC LICENSE, Version 3.0
  * (the "License"); you may not use this file except in compliance 
