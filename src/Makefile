@@ -88,7 +88,7 @@ $(DEPFILE):$(CDEPS)
            --exeformat "$(SRCDIR)Mbarivision.C : $(BINDIR)mbarivision" \
            --exeformat "$(SRCDIR)helloworld.C : $(BINDIR)helloworld" \
            --exeformat "$(SRCDIR)test-GaborPyc.C : $(BINDIR)test-GaborPyc" \
-           --exeformat "$(SRCDIR)readAnnotations.C : $(BINDIR)readAnnotations" \
+           --exeformat "$(SRCDIR)locateCreatures.C : $(BINDIR)locateCreatures" \
            --exeformat "$(SRCDIR)readXMLData.C : $(BINDIR)readXMLData" \
            --includedir "$(SALIENCYROOT)/src" \
            --includedir "$(XERCESCROOT)/src" \
@@ -131,9 +131,9 @@ depclean:
 allclean: clean depclean
 
 installReadAnnotations: 
-	$(COMPILE1) "Installing readAnnotations in $(BINDIR) to $(PREFIX)/bin "
+	$(COMPILE1) "Installing locateCreatures in $(BINDIR) to $(PREFIX)/bin "
 	@mkdir -p $(PREFIX)/bin/$(SCHEMADIR)
-	@cp -f $(BINDIR)readAnnotations $(PREFIX)/bin
+	@cp -f $(BINDIR)locateCreatures $(PREFIX)/bin
 	$(COMPILE1) "Installing mbarivision xml schema files in $(SCHEMADIR) to $(PREFIX)/bin "
 	@cp -Rf $(SCHEMADIR) $(PREFIX)/bin
 	$(COMPILE1) "Done !"
