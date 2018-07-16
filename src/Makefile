@@ -130,7 +130,7 @@ depclean:
 
 allclean: clean depclean
 
-installReadAnnotations: 
+instalLocateCreatures: 
 	$(COMPILE1) "Installing locateCreatures in $(BINDIR) to $(PREFIX)/bin "
 	@mkdir -p $(PREFIX)/bin/$(SCHEMADIR)
 	@cp -f $(BINDIR)locateCreatures $(PREFIX)/bin
