@@ -24,9 +24,13 @@ VLIBS       := /usr/lib
 VLIBS +=`grep -m 1 VPATH_LIBDIRS $(SALIENCYROOT)/Makefile | cut -f2 -d =`
 vpath % $(VLIBS)
 
-all: $(CDEPS) $(BINDIR)mbarivision
+# Add New File Here for Referencing in 'Target'
+all: $(CDEPS) $(BINDIR)readAnnotations
 classifier: $(CDEPS) $(BINDIR)trainbayes $(BINDIR)trainbayesLDA $(BINDIR)test-FisherLDA
 helloworld: $(CDEPS) $(BINDIR)helloworld
+test-GaborPyc: $(CDEPS) $(BINDIR)test-GaborPyc
+readAnnotations: $(CDEPS) $(BINDIR)readAnnotations 
+readXMLData: $(CDEPS) $(BINDIR)readXMLData
 
 # for the compilation of the Version file every time to date/time stamp the build
 $(OBJDIR)Utils/Version.o: force $(SRCDIR)Utils/Version.C
@@ -83,6 +87,9 @@ $(DEPFILE):$(CDEPS)
            --includedir "$(SRCDIR)" \
            --exeformat "$(SRCDIR)Mbarivision.C : $(BINDIR)mbarivision" \
            --exeformat "$(SRCDIR)helloworld.C : $(BINDIR)helloworld" \
+           --exeformat "$(SRCDIR)test-GaborPyc.C : $(BINDIR)test-GaborPyc" \
+           --exeformat "$(SRCDIR)readAnnotations.C : $(BINDIR)readAnnotations" \
+           --exeformat "$(SRCDIR)readXMLData.C : $(BINDIR)readXMLData" \
            --includedir "$(SALIENCYROOT)/src" \
            --includedir "$(XERCESCROOT)/src" \
            --options-file depoptions-all \
@@ -123,6 +130,14 @@ depclean:
 
 allclean: clean depclean
 
+installReadAnnotations: 
+	$(COMPILE1) "Installing readAnnotations in $(BINDIR) to $(PREFIX)/bin "
+	@mkdir -p $(PREFIX)/bin/$(SCHEMADIR)
+	@cp -f $(BINDIR)readAnnotations $(PREFIX)/bin
+	$(COMPILE1) "Installing mbarivision xml schema files in $(SCHEMADIR) to $(PREFIX)/bin "
+	@cp -Rf $(SCHEMADIR) $(PREFIX)/bin
+	$(COMPILE1) "Done !"
+
 install: 
 	$(COMPILE1) "Installing mbarivision in $(BINDIR) to $(PREFIX)/bin "
 	@mkdir -p $(PREFIX)/bin/$(SCHEMADIR)
@@ -138,4 +153,3 @@ uninstall:
 	$(COMPILE1) "Done !"
 	
 -include $(DEPFILE)
-
